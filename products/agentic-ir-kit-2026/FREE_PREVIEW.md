@@ -1,5 +1,7 @@
 # Agentic AI Incident Response Kit 2026 — Free Preview
 
+**Want the full production kit? [Buy it with Stripe for $109 →](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=free_preview&utm_campaign=agentic_ir_kit_20260819&utm_content=preview_top&client_reference_id=github_ir_preview_top)**
+
 ## The first 15 minutes
 
 **0–2 min — state the external effect.** Write one sentence: who/what is failing, what valuable outcome stopped, and when the change began.
@@ -38,4 +40,6 @@ A publisher returns HTTP 200 and `submitted=true`. Provider-native readback stil
 ## Full kit
 The paid kit adds the full incident playbook, observability schema, intake/postmortem templates, reusable role prompts, failure classifier, cost-of-delay calculator, and commercial internal-use license.
 
-**Full kit — $109:** https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01
+**[Buy the full Agentic AI Incident Response Kit 2026 — $109 →](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=free_preview&utm_campaign=agentic_ir_kit_20260819&utm_content=preview_bottom&client_reference_id=github_ir_preview_bottom)**
+
+Stripe provides the checkout and instant post-payment download. No account setup or sales call is required.
