@@ -1,10 +1,10 @@
 # Commercial release: Agentic AI Incident Response Kit 2026
 
-**$149 one-time · instant digital delivery · one-organization commercial license**
+**$109 one-time · instant digital delivery · one-organization commercial license**
 
 A production-operations kit for engineering teams running tool-using AI agents: incident-response playbook, first-15-minute checklist, observability schema, postmortem/intake templates, incident prompts, failure-classifier utility, and cost-of-delay calculator.
 
-**Buy with Stripe:** https://buy.stripe.com/28EbJ14qd5X94q382mgQE00
+**Buy with Stripe:** https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01
 
 **Product details:** [products/agentic-ir-kit-2026/README.md](products/agentic-ir-kit-2026/README.md)
 
