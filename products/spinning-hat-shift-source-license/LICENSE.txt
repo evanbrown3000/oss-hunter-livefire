@@ -1,0 +1,11 @@
+Spinning Hat Shift Source — Commercial Source License
+
+Copyright 2026 Evan Brown / Cognilode. All rights reserved.
+
+One purchaser may use, modify, reskin, deploy, bundle, and commercially distribute compiled or hosted derivative games created from this source package in any number of the purchaser's own projects.
+
+The purchaser may not resell, redistribute, sublicense, publish, or provide the original source package—or a substantially equivalent source-template package—as a competing source-code product or downloadable source library.
+
+The purchaser is responsible for third-party platform, advertising, privacy, age-rating, consumer-protection, and distribution compliance for its derivatives.
+
+THE SOURCE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
