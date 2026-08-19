@@ -1,0 +1,29 @@
+{
+  "accepted_count": 2,
+  "event_id": "2ed197a948e0655f8be7b03dbe44ee1f5d413bbf0ba13c39b273bec3fa124dcd",
+  "pubkey": "618e9a1fdca878de40aa20dca7a9f4082e3acdec4cc2fabae3f4c8bc04be0880",
+  "readback_count": 2,
+  "results": [
+    {
+      "accepted": false,
+      "error": "InvalidStatus: server rejected WebSocket connection: HTTP 503",
+      "ok": false,
+      "readback": false,
+      "relay": "wss://relay.damus.io"
+    },
+    {
+      "accepted": true,
+      "ok": true,
+      "ok_message": "",
+      "readback": true,
+      "relay": "wss://nos.lol"
+    },
+    {
+      "accepted": true,
+      "ok": true,
+      "ok_message": "",
+      "readback": true,
+      "relay": "wss://relay.primal.net"
+    }
+  ]
+}
