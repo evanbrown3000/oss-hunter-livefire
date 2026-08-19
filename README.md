@@ -4,7 +4,7 @@
 
 A production-operations toolkit for engineering teams running tool-using AI agents, browser automation, LLM workflows, and multi-agent systems.
 
-[**Buy the full kit with Stripe — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01)
+[**Buy the full kit with Stripe — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=repository&utm_campaign=agentic_ir_kit_20260819&utm_content=readme_top&client_reference_id=github_oss_hunter_ir_kit_top)
 
 [Read the free preview](products/agentic-ir-kit-2026/FREE_PREVIEW.md) · [See full product details](products/agentic-ir-kit-2026/README.md)
 
@@ -48,7 +48,7 @@ The free preview includes the complete first-15-minute procedure, a practical tr
 
 The Stripe checkout is live. After successful payment, Stripe immediately shows the enhanced ZIP download link. No account setup or sales call is required.
 
-[**Buy the Agentic AI Incident Response Kit 2026 — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01)
+[**Buy the Agentic AI Incident Response Kit 2026 — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=repository&utm_campaign=agentic_ir_kit_20260819&utm_content=readme_bottom&client_reference_id=github_oss_hunter_ir_kit_bottom)
 
 ## License
 
