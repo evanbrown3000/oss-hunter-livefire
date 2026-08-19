@@ -2,11 +2,11 @@
 
 A production-operations kit for teams running tool-using AI agents.
 
-**Price: $149 USD — one-time purchase, instant digital delivery.**
+**Price: $109 USD — one-time purchase, instant digital delivery.**
 
 ## Buy now
 
-**Stripe Checkout:** https://buy.stripe.com/28EbJ14qd5X94q382mgQE00
+**Stripe Checkout:** https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01
 
 The download link is shown immediately after successful payment.
 
