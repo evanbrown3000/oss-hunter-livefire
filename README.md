@@ -4,6 +4,8 @@
 
 A production-operations kit for engineering teams running tool-using AI agents: incident-response playbook, first-15-minute checklist, observability schema, postmortem/intake templates, incident prompts, failure-classifier utility, and cost-of-delay calculator.
 
+**Read the free preview:** [products/agentic-ir-kit-2026/FREE_PREVIEW.md](products/agentic-ir-kit-2026/FREE_PREVIEW.md)
+
 **Buy with Stripe:** https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01
 
 **Product details:** [products/agentic-ir-kit-2026/README.md](products/agentic-ir-kit-2026/README.md)
