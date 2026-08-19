@@ -1,0 +1,2 @@
+import argparse
+p=argparse.ArgumentParser();p.add_argument("--revenue-per-hour",type=float,default=0);p.add_argument("--burn-per-hour",type=float,default=0);p.add_argument("--people",type=int,default=0);p.add_argument("--loaded-labor-per-hour",type=float,default=0);p.add_argument("--hours",type=float,required=True);a=p.parse_args();print(f"delay_cost_usd={(a.revenue_per_hour+a.burn_per_hour+a.people*a.loaded_labor_per_hour)*a.hours:.2f}")

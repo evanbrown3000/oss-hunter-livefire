@@ -1,0 +1,5 @@
+import argparse,re,json
+RULES={"provider_rate_limit":[r"\b429\b",r"too many requests",r"rate.?limit",r"throttl"],"auth_identity":[r"\b401\b",r"\b403\b",r"unauthor",r"forbidden",r"oauth",r"wrong account"],"browser_session":[r"wrong tab",r"profile",r"display",r"stale page",r"browser"],"queue_deadlock":[r"queue",r"deadlock",r"worker idle",r"lock"],"retry_runaway":[r"retry",r"duplicate",r"loop",r"repeated"],"cost_runaway":[r"cost",r"spend",r"token",r"budget"],"resource_saturation":[r"oom",r"memory",r"swap",r"cpu",r"load average",r"disk"],"deployment_regression":[r"deploy",r"release",r"rollback",r"version",r"regression"],"tool_contract":[r"schema",r"ignored",r"receipt",r"tool",r"api contract"],"memory_context":[r"forgot",r"context",r"memory",r"stale summary"]}
+def classify(t):
+ s={k:sum(bool(re.search(p,t.lower())) for p in ps) for k,ps in RULES.items()};o=sorted(s.items(),key=lambda x:(-x[1],x[0]));return {"best":o[0][0] if o[0][1] else "unknown_bounded","scores":dict(o)}
+ap=argparse.ArgumentParser();ap.add_argument("--text",required=True);a=ap.parse_args();print(json.dumps(classify(a.text),indent=2))

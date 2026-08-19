@@ -1,0 +1,9 @@
+Agentic AI Incident Response Kit 2026 — One-Organization Commercial License
+
+Copyright 2026. All rights reserved.
+
+A purchasing organization may copy, modify, and use the materials internally for its own operations. Employees and contractors may use internal modified copies only for that organization's work.
+
+Redistribution, sublicensing, resale, publication, or offering the package or substantially equivalent derivatives as a competing toolkit is not included.
+
+THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
