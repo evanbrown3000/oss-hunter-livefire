@@ -1,0 +1,47 @@
+name: IndexNow commercial product pages
+
+on:
+  push:
+    paths:
+      - '.github/workflows/indexnow-commercial-products.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify public pages and submit to IndexNow
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEY='affb0f9cbf8c63f034cd850a79e61ed7'
+          BASE="https://raw.githack.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/products"
+          KEY_URL="$BASE/$KEY.txt"
+          IR_URL="$BASE/agentic-ir-kit-2026/index.html"
+          GAME_URL="$BASE/spinning-hat-shift-source-license/index.html"
+
+          test "$(curl --fail --silent --show-error --location --max-time 30 "$KEY_URL")" = "$KEY"
+          curl --fail --silent --show-error --location --max-time 30 "$IR_URL" >/dev/null
+          curl --fail --silent --show-error --location --max-time 30 "$GAME_URL" >/dev/null
+
+          cat > /tmp/indexnow.json <<JSON
+          {
+            "host": "raw.githack.com",
+            "key": "$KEY",
+            "keyLocation": "$KEY_URL",
+            "urlList": ["$IR_URL", "$GAME_URL"]
+          }
+          JSON
+
+          code=$(curl --silent --show-error --output /tmp/indexnow-response.txt --write-out '%{http_code}' \
+            --max-time 30 --request POST --header 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @/tmp/indexnow.json https://api.indexnow.org/indexnow)
+          cat /tmp/indexnow-response.txt || true
+          echo "IndexNow HTTP $code"
+          case "$code" in
+            200|202) exit 0 ;;
+            *) exit 1 ;;
+          esac
