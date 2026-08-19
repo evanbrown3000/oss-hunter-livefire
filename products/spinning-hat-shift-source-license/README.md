@@ -4,6 +4,12 @@ A complete dependency-free HTML5 arcade game source package for developers, stud
 
 **Commercial source license: $109 USD one-time per developer/studio.**
 
+## Buy now
+
+**Stripe Checkout:** https://buy.stripe.com/bJeeVdf4R71d5u74QagQE02
+
+The source ZIP is delivered immediately after successful payment.
+
 ## Included
 
 - complete HTML/CSS/JavaScript game source
@@ -21,6 +27,6 @@ The source was created and validated August 19, 2026. It passed JavaScript synta
 
 One purchaser may use, modify, reskin, deploy, bundle, and commercially distribute compiled/hosted derivative games created from the source. The purchaser may not resell, redistribute, sublicense, or publish the original source package or a substantially equivalent source-template package as a competing source-code product.
 
-## Buy
+## Source preview
 
-Stripe checkout is linked from the parent repository's commercial listings. Delivery is immediate after successful payment.
+The product page describes the included source and license. The paid ZIP contains the complete source package.
