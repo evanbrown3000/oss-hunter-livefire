@@ -6,7 +6,7 @@ A production-operations toolkit for engineering teams running tool-using AI agen
 
 [**Buy the full kit with Stripe — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=repository&utm_campaign=agentic_ir_kit_20260819&utm_content=readme_top&client_reference_id=github_oss_hunter_ir_kit_top)
 
-[Read the free preview](products/agentic-ir-kit-2026/FREE_PREVIEW.md) · [See full product details](products/agentic-ir-kit-2026/README.md)
+[Read the public incident-response runbook](AI_AGENT_INCIDENT_RESPONSE_RUNBOOK.md) · [Read the free preview](products/agentic-ir-kit-2026/FREE_PREVIEW.md) · [See full product details](products/agentic-ir-kit-2026/README.md)
 
 ## What the kit helps you do
 
@@ -38,9 +38,11 @@ The kit gives a reusable operational loop for that work:
 - worked incident examples
 - one-organization commercial internal-use license per quantity purchased
 
-## Free preview
+## Free material
 
-The free preview includes the complete first-15-minute procedure, a practical triage matrix, and two worked lessons from agentic production failures.
+The public runbook gives the core incident-response sequence. The free preview includes the complete first-15-minute procedure, a practical triage matrix, and two worked lessons from agentic production failures.
+
+[**Read the AI Agent Incident Response Runbook →**](AI_AGENT_INCIDENT_RESPONSE_RUNBOOK.md)
 
 [**Read the free preview →**](products/agentic-ir-kit-2026/FREE_PREVIEW.md)
 
