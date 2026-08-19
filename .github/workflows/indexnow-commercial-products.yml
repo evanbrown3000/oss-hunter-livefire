@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   submit:
@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Verify public pages and submit to IndexNow
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           KEY='affb0f9cbf8c63f034cd850a79e61ed7'
@@ -41,7 +43,18 @@ jobs:
             --data-binary @/tmp/indexnow.json https://api.indexnow.org/indexnow)
           cat /tmp/indexnow-response.txt || true
           echo "IndexNow HTTP $code"
-          case "$code" in
-            200|202) exit 0 ;;
-            *) exit 1 ;;
-          esac
+          case "$code" in 200|202) ;; *) exit 1 ;; esac
+
+          cat > /tmp/indexnow-receipt.json <<JSON
+          {
+            "submitted_at_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "http_code": $code,
+            "workflow_sha": "$GITHUB_SHA",
+            "url_list": ["$IR_URL", "$GAME_URL"]
+          }
+          JSON
+          encoded=$(base64 -w0 /tmp/indexnow-receipt.json)
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/contents/products/indexnow-last-success.json" --jq .sha 2>/dev/null || true)
+          args=(--method PUT "repos/$GITHUB_REPOSITORY/contents/products/indexnow-last-success.json" -f message='Record successful commercial IndexNow submission' -f content="$encoded" -f branch='main')
+          if [ -n "$existing" ]; then args+=(-f sha="$existing"); fi
+          gh api "${args[@]}" >/dev/null
