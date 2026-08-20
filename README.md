@@ -1,5 +1,24 @@
 # Cognilode paid offers
 
+## Emergency Autonomous Systems Recovery Sprint — $2,500
+
+**$2,500 one time · one active incident · bounded recovery sprint**
+
+For an active AI-agent, browser-automation, LLM workflow, or autonomous-systems failure where diagnosis alone is not enough. Submit the affected public repository/system URL and what is failing at checkout.
+
+You receive:
+
+- a prioritized diagnosis that separates symptoms from the most likely failure mechanism;
+- recovery implementation within the accessible scope of the submitted system;
+- verification evidence showing whether the valuable end-to-end outcome was actually restored;
+- a concise recurrence-prevention handoff documenting what changed and what to watch next.
+
+[**Buy the Emergency Autonomous Systems Recovery Sprint — $2,500 →**](https://buy.stripe.com/eVq3cv4qd4T58GjbeygQE0c?utm_source=github&utm_medium=repository&utm_campaign=emergency_recovery_sprint_20260819&utm_content=readme_top&client_reference_id=github_emergency_recovery_sprint)
+
+One incident/sprint only. Third-party fees and ongoing support are not included.
+
+---
+
 ## Emergency Agent Incident Triage — $250
 
 **$250 one time · one active incident · asynchronous delivery**
@@ -13,7 +32,7 @@ You receive:
 - a bounded recovery plan designed to avoid multiplying retries or conflicting changes;
 - the next verification steps that distinguish recovery from a merely-green process.
 
-[**Buy Emergency Agent Incident Triage — $250 →**](https://buy.stripe.com/dRmaEXe0Nclx8Gj82mgQE0b?utm_source=github&utm_medium=repository&utm_campaign=emergency_agent_triage_20260819&utm_content=readme_top&client_reference_id=github_emergency_agent_triage)
+[**Buy Emergency Agent Incident Triage — $250 →**](https://buy.stripe.com/dRmaEXe0Nclx8Gj82mgQE0b?utm_source=github&utm_medium=repository&utm_campaign=emergency_agent_triage_20260819&utm_content=readme_triage&client_reference_id=github_emergency_agent_triage)
 
 One incident only. Implementation and ongoing support are not included.
 
