@@ -1,3 +1,16 @@
+<!-- BEGIN LEANPUB_MARKETPLACE -->
+## Production ML Deployment Triage — Leanpub marketplace
+
+**$19 minimum · $29 suggested · third-party marketplace checkout**
+
+A concise field guide for diagnosing production ML deployment failures: separate symptoms from failure mechanisms, prioritize recovery actions, and verify the end-to-end outcome instead of stopping at a green process.
+
+[**Get Production ML Deployment Triage on Leanpub →**](https://leanpub.com/production-ml-deployment-triage?utm_source=github&utm_medium=repository&utm_campaign=marketplace_income_surface_20260820)
+
+<!-- END LEANPUB_MARKETPLACE -->
+
+---
+
 # Cognilode paid offers
 
 ## Emergency Autonomous Systems Recovery Sprint — $2,500
