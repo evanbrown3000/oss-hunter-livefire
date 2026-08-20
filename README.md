@@ -1,5 +1,24 @@
 # Cognilode paid offers
 
+## Emergency Agent Incident Triage — $250
+
+**$250 one time · one active incident · asynchronous delivery**
+
+For an active AI-agent, browser-automation, LLM workflow, or automation failure where you need a prioritized technical diagnosis instead of another generic checklist. Submit the affected public URL/repository and what is failing at checkout.
+
+You receive:
+
+- the most likely failure mechanism, separated from symptoms;
+- a prioritized diagnosis based on the submitted system/evidence;
+- a bounded recovery plan designed to avoid multiplying retries or conflicting changes;
+- the next verification steps that distinguish recovery from a merely-green process.
+
+[**Buy Emergency Agent Incident Triage — $250 →**](https://buy.stripe.com/dRmaEXe0Nclx8Gj82mgQE0b?utm_source=github&utm_medium=repository&utm_campaign=emergency_agent_triage_20260819&utm_content=readme_top&client_reference_id=github_emergency_agent_triage)
+
+One incident only. Implementation and ongoing support are not included.
+
+---
+
 ## Website Conversion Teardown — $49
 
 **$49 one time · one public website URL · asynchronous delivery**
