@@ -1,0 +1,90 @@
+name: Marketplace income surface
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/marketplace-income-surface.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 12 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Leanpub marketplace listing
+        env:
+          LEANPUB_URL: "https://leanpub.com/production-ml-deployment-triage"
+        run: |
+          set -euo pipefail
+          page="$(curl --fail --location --silent --show-error "$LEANPUB_URL")"
+          grep -Fq "Production ML Deployment Triage" <<<"$page"
+          grep -Fq '$19.00' <<<"$page"
+
+      - name: Refresh public marketplace discovery surface
+        env:
+          LEANPUB_URL: "https://leanpub.com/production-ml-deployment-triage?utm_source=github&utm_medium=repository&utm_campaign=marketplace_income_surface_20260820"
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os, re
+
+          url = os.environ["LEANPUB_URL"]
+          block = f'''<!-- BEGIN LEANPUB_MARKETPLACE -->
+          ## Production ML Deployment Triage — Leanpub marketplace
+
+          **$19 minimum · $29 suggested · third-party marketplace checkout**
+
+          A concise field guide for diagnosing production ML deployment failures: separate symptoms from failure mechanisms, prioritize recovery actions, and verify the end-to-end outcome instead of stopping at a green process.
+
+          [**Get Production ML Deployment Triage on Leanpub →**]({url})
+
+          <!-- END LEANPUB_MARKETPLACE -->'''.replace("          ", "")
+
+          readme = Path("README.md")
+          text = readme.read_text(encoding="utf-8")
+          pattern = re.compile(r"<!-- BEGIN LEANPUB_MARKETPLACE -->.*?<!-- END LEANPUB_MARKETPLACE -->", re.S)
+          if pattern.search(text):
+              new_text = pattern.sub(block, text, count=1)
+          else:
+              new_text = block + "\n\n---\n\n" + text
+          if new_text != text:
+              readme.write_text(new_text, encoding="utf-8")
+
+          marketplace = Path("MARKETPLACE.md")
+          marketplace_text = f'''# Marketplace products
+
+          ## Production ML Deployment Triage
+
+          **Leanpub · $19 minimum · $29 suggested**
+
+          Production-focused deployment triage for engineers who need a bounded path from ambiguous symptoms to a verified recovery decision.
+
+          [Buy on Leanpub]({url})
+
+          This checkout is hosted by Leanpub; no custom payment flow is used.
+          '''.replace("          ", "")
+          if not marketplace.exists() or marketplace.read_text(encoding="utf-8") != marketplace_text:
+              marketplace.write_text(marketplace_text, encoding="utf-8")
+          PY
+
+      - name: Publish only when the surface changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- README.md MARKETPLACE.md; then
+            echo "Marketplace surface already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md MARKETPLACE.md
+          git commit -m "Refresh Leanpub marketplace surface"
+          git push
