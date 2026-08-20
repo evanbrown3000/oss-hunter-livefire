@@ -1,4 +1,18 @@
-# Agentic AI Incident Response Kit 2026
+# Cognilode paid offers
+
+## Website Conversion Teardown — $49
+
+**$49 one time · one public website URL · asynchronous delivery**
+
+Get a concise, prioritized buyer-perspective teardown covering message clarity, trust, conversion friction, calls to action, information hierarchy, unanswered objections, and the highest-leverage fixes first.
+
+[**Buy the Website Conversion Teardown — $49 →**](https://buy.stripe.com/aFa14naOB3P1e0DgySgQE07?utm_source=github&utm_medium=repository&utm_campaign=website_teardown_20260819&utm_content=readme_top&client_reference_id=github_website_teardown_top)
+
+[See exactly what is included](products/website-conversion-teardown/README.md)
+
+---
+
+## Agentic AI Incident Response Kit 2026 — $109
 
 **$109 one-time · instant digital delivery · one-organization commercial license**
 
@@ -8,7 +22,7 @@ A production-operations toolkit for engineering teams running tool-using AI agen
 
 [Read the public incident-response runbook](AI_AGENT_INCIDENT_RESPONSE_RUNBOOK.md) · [Read the free preview](products/agentic-ir-kit-2026/FREE_PREVIEW.md) · [See full product details](products/agentic-ir-kit-2026/README.md)
 
-## What the kit helps you do
+### What the kit helps you do
 
 When an agentic system fails, the difficult part is rarely “is a process running?” The difficult part is restoring the valuable end-to-end outcome without multiplying retries, browser actions, deployments, provider traffic, or conflicting operators.
 
@@ -22,7 +36,7 @@ The kit gives a reusable operational loop for that work:
 6. verify the outcome independently;
 7. capture the recurrence mechanism.
 
-## Included
+### Included
 
 - first-15-minute incident quickstart
 - production triage matrix
@@ -38,31 +52,27 @@ The kit gives a reusable operational loop for that work:
 - worked incident examples
 - one-organization commercial internal-use license per quantity purchased
 
-## Free material
-
-The public runbook gives the core incident-response sequence. The free preview includes the complete first-15-minute procedure, a practical triage matrix, and two worked lessons from agentic production failures.
+### Free material
 
 [**Read the AI Agent Incident Response Runbook →**](AI_AGENT_INCIDENT_RESPONSE_RUNBOOK.md)
 
 [**Read the free preview →**](products/agentic-ir-kit-2026/FREE_PREVIEW.md)
 
-## Buy now
+### Buy now
 
 The Stripe checkout is live. After successful payment, Stripe immediately shows the enhanced ZIP download link. No account setup or sales call is required.
 
 [**Buy the Agentic AI Incident Response Kit 2026 — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=repository&utm_campaign=agentic_ir_kit_20260819&utm_content=readme_bottom&client_reference_id=github_oss_hunter_ir_kit_bottom)
 
-## License
+### License
 
 One purchasing organization may use and modify the included materials internally per license purchased. Redistribution, sublicensing, resale, or publication of the package or substantially equivalent derivatives is not included.
-
-Created and published August 19, 2026.
 
 ---
 
 ## Other repository utilities
 
-This repository also contains unrelated open-source/test utilities used in engineering experiments. They are **not part of the paid incident-response kit** unless explicitly listed in the product directory.
+This repository also contains unrelated open-source/test utilities used in engineering experiments. They are **not part of the paid offers** unless explicitly listed in a product directory.
 
 ### duration-utils
 
