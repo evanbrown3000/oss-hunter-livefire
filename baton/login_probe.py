@@ -39,7 +39,7 @@ def normalized(value: str) -> str:
     return re.sub(r"\s+", " ", value or "").strip()
 
 
-def visible_texts(page, role: str, limit: int = 30) -> list[str]:
+def visible_texts(page, role: str, limit: int = 40) -> list[str]:
     rows: list[str] = []
     try:
         locator = page.get_by_role(role)
@@ -52,57 +52,23 @@ def visible_texts(page, role: str, limit: int = 30) -> list[str]:
             except Exception:
                 text = ""
             if text:
-                rows.append(text[:240])
+                rows.append(text.replace(EMAIL, "<EMAIL>")[:300])
     except Exception:
         pass
     return rows
 
 
-status = {
-    "schema": "cognilode.chatgpt_cloud_login_probe.v1",
-    "run_id": RUN_ID,
-    "host_used": False,
-    "codex_used": False,
-    "scheduled_tasks_used": False,
-    "work_mode_used": False,
-}
-
-try:
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(
-            headless=False,
-            args=["--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"],
-        )
-        context = browser.new_context(viewport={"width": 1440, "height": 1000}, locale="en-US")
-        page = context.new_page()
-        page.goto("https://chatgpt.com/auth/login", wait_until="domcontentloaded", timeout=60000)
-        time.sleep(3)
-        try:
-            button = page.get_by_role("button", name=re.compile(r"^log in$", re.I))
-            if button.count() and button.first.is_visible():
-                button.first.click(timeout=2500)
-                time.sleep(2)
-        except Exception:
-            pass
-        email = page.locator('input[type="email"],input[name="email"]')
-        if not email.count() or not email.first.is_visible():
-            raise RuntimeError("LOGIN_EMAIL_FIELD_NOT_FOUND")
-        email.first.fill(EMAIL)
-        button = page.get_by_role("button", name=re.compile(r"continue|next", re.I))
-        if not button.count() or not button.first.is_visible():
-            raise RuntimeError("LOGIN_CONTINUE_NOT_FOUND")
-        button.first.click()
-        time.sleep(8)
-
-        body = ""
-        try:
-            body = normalized(page.locator("body").inner_text(timeout=4000))
-        except Exception:
-            pass
-        body = body.replace(EMAIL, "<EMAIL>")
-        inputs: list[dict[str, str]] = []
+def snapshot(page, stage: str) -> dict:
+    body = ""
+    try:
+        body = normalized(page.locator("body").inner_text(timeout=4000))
+    except Exception:
+        pass
+    body = body.replace(EMAIL, "<EMAIL>")
+    inputs: list[dict[str, str]] = []
+    try:
         locator = page.locator("input")
-        for index in range(min(locator.count(), 30)):
+        for index in range(min(locator.count(), 40)):
             item = locator.nth(index)
             if not item.is_visible():
                 continue
@@ -116,20 +82,78 @@ try:
                     "aria_label": str(item.get_attribute("aria-label") or ""),
                 }
             )
-        status.update(
-            {
-                "page_url": page.url,
-                "page_title": page.title(),
-                "body_excerpt": body[:4000],
-                "visible_inputs": inputs,
-                "visible_buttons": visible_texts(page, "button"),
-                "visible_links": visible_texts(page, "link"),
-            }
+    except Exception:
+        pass
+    return {
+        "stage": stage,
+        "page_url": page.url,
+        "page_title": page.title(),
+        "body_excerpt": body[:5000],
+        "visible_inputs": inputs,
+        "visible_buttons": visible_texts(page, "button"),
+        "visible_links": visible_texts(page, "link"),
+    }
+
+
+status = {
+    "schema": "cognilode.chatgpt_cloud_login_probe.v2",
+    "run_id": RUN_ID,
+    "host_used": False,
+    "codex_used": False,
+    "scheduled_tasks_used": False,
+    "work_mode_used": False,
+    "stages": [],
+}
+page = None
+browser = None
+
+try:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            headless=False,
+            args=["--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"],
         )
-        page.screenshot(path=str(SCREENSHOT), full_page=True)
+        context = browser.new_context(viewport={"width": 1440, "height": 1000}, locale="en-US")
+        page = context.new_page()
+        page.goto("https://chatgpt.com/auth/login", wait_until="domcontentloaded", timeout=60000)
+        time.sleep(6)
+        status["stages"].append(snapshot(page, "initial_auth_login"))
+
+        email = page.locator('input[type="email"],input[name="email"]')
+        if not email.count() or not email.first.is_visible():
+            try:
+                button = page.get_by_role("button", name=re.compile(r"^log in$", re.I))
+                if button.count() and button.first.is_visible():
+                    button.first.click(timeout=3000)
+                    time.sleep(5)
+                    status["stages"].append(snapshot(page, "after_log_in_button"))
+            except Exception as exc:
+                status["log_in_button_error"] = f"{type(exc).__name__}: {exc}"
+            email = page.locator('input[type="email"],input[name="email"]')
+
+        if email.count() and email.first.is_visible():
+            email.first.fill(EMAIL)
+            button = page.get_by_role("button", name=re.compile(r"continue|next", re.I))
+            if button.count() and button.first.is_visible():
+                button.first.click(timeout=3000)
+                time.sleep(10)
+                status["stages"].append(snapshot(page, "after_email_continue"))
+            else:
+                status["continue_control_missing"] = True
+        else:
+            status["email_control_missing"] = True
+
+        if page is not None:
+            page.screenshot(path=str(SCREENSHOT), full_page=True)
         browser.close()
 except Exception as exc:
     status["probe_error"] = f"{type(exc).__name__}: {exc}"
+    try:
+        if page is not None:
+            status["stages"].append(snapshot(page, "exception_state"))
+            page.screenshot(path=str(SCREENSHOT), full_page=True)
+    except Exception:
+        pass
 finally:
     STATUS.write_text(json.dumps(status, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
     comment(status)
