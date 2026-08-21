@@ -1,0 +1,1 @@
+External trigger only. Cycle configuration is carried in the pull-request body; no credentials or secret prompts are stored here.
