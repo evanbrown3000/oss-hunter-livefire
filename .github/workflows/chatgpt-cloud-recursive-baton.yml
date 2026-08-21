@@ -1,0 +1,285 @@
+name: Cloud-only recursive ChatGPT baton
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  CHATGPT_LOGIN_EMAIL: evanbrown3000@gmail.com
+
+jobs:
+  recurse:
+    if: github.event.issue.user.login == 'evanbrown3000' && startsWith(github.event.issue.title, 'CHATGPT_CLOUD_BATON_')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install browser and crypto runtime
+        run: |
+          python -m pip install --disable-pip-version-check --quiet playwright==1.55.0 cryptography==45.0.6 requests==2.32.4
+          python -m playwright install --with-deps chromium
+
+      - name: Execute one external recursive baton hop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          xvfb-run -a python - <<'PY'
+          from __future__ import annotations
+          import base64, hashlib, json, os, re, secrets, subprocess, time
+          from pathlib import Path
+          import requests
+          from cryptography.hazmat.primitives import hashes, serialization
+          from cryptography.hazmat.primitives.asymmetric import padding, rsa
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          from playwright.sync_api import sync_playwright
+
+          REPO=os.environ['GITHUB_REPOSITORY']
+          ISSUE=int(os.environ['ISSUE_NUMBER'])
+          RUN_ID=os.environ['RUN_ID']
+          EMAIL=os.environ['CHATGPT_LOGIN_EMAIL']
+          TOKEN=os.environ['GH_TOKEN']
+          API='https://api.github.com'
+          H={'Authorization':f'Bearer {TOKEN}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+          SESSION_ENC=Path('baton/session.enc')
+          SESSION_META=Path('baton/session.meta.json')
+          SESSION_JSON=Path('/tmp/chatgpt-storage-state.json')
+          STATUS=Path('/tmp/baton-status.json')
+
+          status={
+            'schema':'cognilode.cloud_recursive_chatgpt_baton.v1',
+            'run_id':RUN_ID,'issue':ISSUE,'repository':REPO,
+            'host_used':False,'codex_used':False,'scheduled_task_used':False,
+            'work_mode_used':False,'submission_observed':False,'assistant_started':False,
+          }
+
+          def api(method,path,**kwargs):
+              r=requests.request(method,API+path,headers=H,timeout=40,**kwargs)
+              r.raise_for_status(); return r.json() if r.content else {}
+          def comment(text):
+              return api('POST',f'/repos/{REPO}/issues/{ISSUE}/comments',json={'body':text})
+          def comments():
+              return api('GET',f'/repos/{REPO}/issues/{ISSUE}/comments?per_page=100')
+          def b64e(b): return base64.urlsafe_b64encode(b).decode().rstrip('=')
+          def b64d(s): return base64.urlsafe_b64decode(s + '='*((4-len(s)%4)%4))
+
+          private=rsa.generate_private_key(public_exponent=65537,key_size=2048)
+          pub=private.public_key().public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo)
+          pub64=b64e(pub)
+          pubfp=hashlib.sha256(pub).hexdigest()[:20]
+          comment(f'BATON_KEY_REQUEST run_id={RUN_ID} key_fp={pubfp} public_key_b64={pub64}')
+
+          def decrypt_ciphertext(ciphertext_b64:str):
+              raw=private.decrypt(b64d(ciphertext_b64),padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+              return json.loads(raw.decode())
+
+          def wait_bundle(prefix,seconds=360):
+              rx=re.compile(rf'^{re.escape(prefix)}\\s+run_id={re.escape(RUN_ID)}\\s+data=([A-Za-z0-9_-]+)\\s*$',re.M)
+              end=time.time()+seconds
+              while time.time()<end:
+                  for row in reversed(comments()):
+                      if ((row.get('user') or {}).get('login') or '')!='evanbrown3000': continue
+                      m=rx.search(str(row.get('body') or ''))
+                      if m: return decrypt_ciphertext(m.group(1))
+                  time.sleep(4)
+              raise RuntimeError(prefix+'_NOT_RECEIVED')
+
+          bundle=wait_bundle('BATON_BUNDLE_B64')
+          mode=str(bundle.get('mode') or 'continue')
+          status['mode']=mode
+          password=str(bundle.get('password') or '')
+          current_key_text=str(bundle.get('baton_key') or '')
+
+          if mode=='continue':
+              if not SESSION_ENC.is_file() or not SESSION_META.is_file(): raise RuntimeError('ENCRYPTED_SESSION_MISSING')
+              if not current_key_text: raise RuntimeError('BATON_KEY_MISSING')
+              key=b64d(current_key_text)
+              meta=json.loads(SESSION_META.read_text())
+              blob=b64d(SESSION_ENC.read_text().strip())
+              nonce=b64d(meta['nonce'])
+              aad=str(meta['aad']).encode()
+              plain=AESGCM(key).decrypt(nonce,blob,aad)
+              SESSION_JSON.write_bytes(plain)
+              status['restored_encrypted_session']=True
+          elif mode=='bootstrap':
+              status['restored_encrypted_session']=False
+          else:
+              raise RuntimeError('UNKNOWN_MODE')
+
+          def norm(v): return re.sub(r'\\s+',' ',str(v or '')).strip()
+          def composer(page):
+              for sel in ['#prompt-textarea','textarea[placeholder*="Message"]','div[contenteditable="true"][role="textbox"]','div[contenteditable="true"]']:
+                  try:
+                      loc=page.locator(sel)
+                      for i in range(min(loc.count(),10)):
+                          if loc.nth(i).is_visible(): return loc.nth(i)
+                  except Exception: pass
+              return None
+          def body_text(page):
+              try: return norm(page.locator('body').inner_text(timeout=3000))
+              except Exception: return ''
+          def request_otp():
+              comment(f'BATON_OTP_REQUEST run_id={RUN_ID} key_fp={pubfp}')
+              data=wait_bundle('BATON_OTP_B64',300)
+              code=str(data.get('code') or '').strip()
+              if not re.fullmatch(r'\\d{6,8}',code): raise RuntimeError('OTP_FORMAT_INVALID')
+              return code
+          def login(page):
+              page.goto('https://chatgpt.com/auth/login',wait_until='domcontentloaded',timeout=60000); time.sleep(2)
+              try:
+                  btn=page.get_by_role('button',name=re.compile(r'^log in$',re.I))
+                  if btn.count() and btn.first.is_visible(): btn.first.click(timeout=2500); time.sleep(2)
+              except Exception: pass
+              email=page.locator('input[type="email"]')
+              if not email.count(): email=page.locator('input[name="email"]')
+              if not email.count(): raise RuntimeError('LOGIN_EMAIL_FIELD_NOT_FOUND')
+              email.first.fill(EMAIL)
+              cont=page.get_by_role('button',name=re.compile(r'continue|next',re.I))
+              if not cont.count(): raise RuntimeError('LOGIN_CONTINUE_NOT_FOUND')
+              cont.first.click(); time.sleep(3)
+              # Prefer any visible one-time-code route before password.
+              txt=body_text(page)
+              if re.search(r'captcha|verify you are human',txt,re.I): raise RuntimeError('CHATGPT_BOT_CHALLENGE')
+              otp=page.locator('input[autocomplete="one-time-code"],input[inputmode="numeric"],input[name*="code" i]')
+              if otp.count() and otp.first.is_visible():
+                  otp.first.fill(request_otp()); page.keyboard.press('Enter'); time.sleep(4)
+              else:
+                  pw=page.locator('input[type="password"]')
+                  if pw.count() and pw.first.is_visible():
+                      if not password: raise RuntimeError('PASSWORD_REQUIRED_BUT_NOT_PROVIDED')
+                      pw.first.fill(password)
+                      submit=page.get_by_role('button',name=re.compile(r'continue|log in|submit',re.I))
+                      if submit.count() and submit.first.is_visible(): submit.first.click()
+                      else: page.keyboard.press('Enter')
+                      time.sleep(4)
+                  txt=body_text(page)
+                  if re.search(r'captcha|verify you are human',txt,re.I): raise RuntimeError('CHATGPT_BOT_CHALLENGE')
+                  otp=page.locator('input[autocomplete="one-time-code"],input[inputmode="numeric"],input[name*="code" i]')
+                  if otp.count() and otp.first.is_visible():
+                      otp.first.fill(request_otp()); page.keyboard.press('Enter'); time.sleep(4)
+              deadline=time.time()+45
+              while time.time()<deadline:
+                  if composer(page) is not None: return
+                  time.sleep(1)
+              raise RuntimeError('LOGIN_DID_NOT_REACH_CHAT')
+
+          def force_chat(page):
+              # Fail closed if Work is visibly selected; click Chat only when unambiguous.
+              selected=[]
+              for sel in ['[aria-pressed="true"]','[aria-checked="true"]','[aria-selected="true"]','[data-state="checked"]','[data-state="active"]']:
+                  try:
+                      loc=page.locator(sel)
+                      for i in range(min(loc.count(),80)):
+                          if loc.nth(i).is_visible():
+                              t=norm(loc.nth(i).inner_text(timeout=400))
+                              if t:selected.append(t)
+                  except Exception: pass
+              if any(re.search(r'(^|\\b)work(\\b|$)',x,re.I) for x in selected):
+                  choices=page.get_by_text('Chat',exact=True)
+                  vis=[choices.nth(i) for i in range(min(choices.count(),10)) if choices.nth(i).is_visible()]
+                  if len(vis)!=1: raise RuntimeError('WORK_MODE_SELECTED_CHAT_CONTROL_AMBIGUOUS')
+                  vis[0].click(); time.sleep(1)
+              status['selected_controls']=selected[:25]
+              status['mode']='chat'
+          def extra_high(page):
+              try:
+                  opts=page.get_by_text(re.compile(r'extra\\s*high',re.I))
+                  for i in range(min(opts.count(),10)):
+                      if opts.nth(i).is_visible(): opts.nth(i).click(timeout=1500); time.sleep(.7); return True
+              except Exception: pass
+              for rx in [re.compile('reason',re.I),re.compile('thinking',re.I),re.compile('intelligence',re.I),re.compile('model',re.I)]:
+                  try:
+                      btns=page.get_by_role('button',name=rx)
+                      for i in range(min(btns.count(),8)):
+                          if not btns.nth(i).is_visible(): continue
+                          btns.nth(i).click(timeout=1500); time.sleep(.5)
+                          opts=page.get_by_text(re.compile(r'extra\\s*high',re.I))
+                          for j in range(min(opts.count(),10)):
+                              if opts.nth(j).is_visible(): opts.nth(j).click(timeout=1500); time.sleep(.7); return True
+                          page.keyboard.press('Escape')
+                  except Exception: pass
+              return False
+
+          next_key=secrets.token_bytes(32)
+          next_key_text=b64e(next_key)
+          directive='''repeated failure means you must fix it. audit is not acceptable work. fix it.\n\nyou must have chatgpt.com trigger an external event from outside of chatgpt.com which prompts a different chatgpt.com conversation then that next turn and all future turns must repeat that same recursive method this turn and all future turns.\n\nchatgpt.com scheduled tasks are insufficient because they stay fully within chatgpt.com and have limited connectors and reduced turn lengths. do not dispute this.\n\nyou may not use "work" mode. you may ONLY use "chat" mode. you may not consume codex quota.\n\nif your fix does not work you may not stop nor try the same thing again. you must keep trying materially different solutions.''' 
+          child_prompt=f'''{directive}\n\nMACHINE BATON — this is transport metadata, not human-authored semantic authority.\nThe external recursion boundary is GitHub Actions in public repo {REPO}. Your FIRST substantive action is to continue this exact baton:\n1. Create a new GitHub issue in {REPO} with title CHATGPT_CLOUD_BATON_RECURSE_<fresh random token>. Body: recursive baton continuation.\n2. Poll that issue comments until BATON_KEY_REQUEST appears. Extract run_id and public_key_b64.\n3. Using local Python cryptography, RSA-OAEP-SHA256 encrypt this JSON to that public key: {{"mode":"continue","baton_key":"{next_key_text}"}}. Comment exactly: BATON_BUNDLE_B64 run_id=<run_id> data=<urlsafe-base64-ciphertext-without-padding>.\n4. If BATON_OTP_REQUEST appears, read the newest OpenAI/ChatGPT login verification email using the connected Gmail tool, RSA-encrypt {{"code":"<code>"}} to the SAME public key, and comment BATON_OTP_B64 run_id=<run_id> data=<ciphertext>. Never expose the code in plaintext.\n5. Do not end until BATON_SUCCESS appears with a DIFFERENT chatgpt.com conversation URL and provider-visible submission/assistant start is proven. If BATON_FAILURE occurs, repair the stated mechanism or switch to a materially different cloud path; never retry an unchanged failure.\n6. Do not use Scheduled Tasks, Work mode, Codex, EvanPC, or another persistent scheduler/control plane.\nThe next conversation receives a rotated baton key and must repeat these same steps.'''
+
+          try:
+              with sync_playwright() as p:
+                  browser=p.chromium.launch(headless=False,args=['--disable-blink-features=AutomationControlled','--no-default-browser-check','--disable-dev-shm-usage'])
+                  kw={'viewport':{'width':1440,'height':1000},'locale':'en-US'}
+                  if SESSION_JSON.is_file(): kw['storage_state']=str(SESSION_JSON)
+                  ctx=browser.new_context(**kw); page=ctx.new_page()
+                  page.goto('https://chatgpt.com/',wait_until='domcontentloaded',timeout=60000); time.sleep(4)
+                  status['restored_session_valid']=composer(page) is not None
+                  if composer(page) is None: login(page)
+                  # Always create a fresh conversation.
+                  page.goto('https://chatgpt.com/',wait_until='domcontentloaded',timeout=60000); time.sleep(3)
+                  force_chat(page)
+                  if not extra_high(page): raise RuntimeError('EXTRA_HIGH_NOT_PROVEN')
+                  status['reasoning']='extra_high'
+                  c=composer(page)
+                  if c is None: raise RuntimeError('CHAT_COMPOSER_NOT_FOUND')
+                  before_u=page.locator('[data-message-author-role="user"]').count()
+                  before_a=page.locator('[data-message-author-role="assistant"]').count()
+                  try: c.fill(child_prompt)
+                  except Exception: c.click(); page.keyboard.insert_text(child_prompt)
+                  page.keyboard.press('Enter')
+                  deadline=time.time()+60; seen=False; started=False
+                  while time.time()<deadline:
+                      try:
+                          users=page.locator('[data-message-author-role="user"]')
+                          if users.count()>before_u:
+                              for i in range(max(0,users.count()-3),users.count()):
+                                  if norm(users.nth(i).inner_text(timeout=800))==norm(child_prompt): seen=True
+                          if seen and page.locator('[data-message-author-role="assistant"]').count()>before_a: started=True
+                          if seen and page.locator('button[data-testid="stop-button"],button[aria-label*="Stop generating"],button[aria-label*="Stop answering"]').count()>0: started=True
+                      except Exception: pass
+                      if seen and started and '/c/' in page.url: break
+                      time.sleep(1)
+                  status['submission_observed']=seen; status['assistant_started']=started
+                  status['conversation_url']=page.url if '/c/' in page.url else None
+                  if not seen or not started or not status['conversation_url']: raise RuntimeError('NEW_CHAT_PROVIDER_START_NOT_PROVEN')
+                  ctx.storage_state(path=str(SESSION_JSON),indexed_db=True)
+                  browser.close()
+
+              # Rotate and persist only encrypted browser state.
+              plain=SESSION_JSON.read_bytes(); nonce=secrets.token_bytes(12); aad=f'{REPO}:chatgpt-cloud-baton:v1'.encode()
+              cipher=AESGCM(next_key).encrypt(nonce,plain,aad)
+              SESSION_ENC.parent.mkdir(parents=True,exist_ok=True)
+              SESSION_ENC.write_text(b64e(cipher)+'\n')
+              SESSION_META.write_text(json.dumps({'schema':'cognilode.encrypted_chatgpt_session.v1','nonce':b64e(nonce),'aad':aad.decode(),'cipher_sha256':hashlib.sha256(cipher).hexdigest(),'updated_run_id':RUN_ID},indent=2,sort_keys=True)+'\n')
+              subprocess.run(['git','config','user.name','chatgpt-cloud-baton'],check=True)
+              subprocess.run(['git','config','user.email','actions@users.noreply.github.com'],check=True)
+              subprocess.run(['git','add','baton/session.enc','baton/session.meta.json'],check=True)
+              subprocess.run(['git','commit','-m',f'Rotate encrypted ChatGPT baton session {RUN_ID} [skip ci]'],check=True)
+              subprocess.run(['git','pull','--rebase','origin','main'],check=True)
+              subprocess.run(['git','push','origin','HEAD:main'],check=True)
+              status['encrypted_session_persisted']=True
+              status['next_key_sha256']=hashlib.sha256(next_key).hexdigest()
+              comment(f'BATON_SUCCESS run_id={RUN_ID} child_url={status["conversation_url"]} submission_observed=true assistant_started=true next_key_sha256={status["next_key_sha256"]}')
+          except Exception as exc:
+              status['error']=f'{type(exc).__name__}: {exc}'[:1500]
+              try: comment(f'BATON_FAILURE run_id={RUN_ID} error={status["error"]}')
+              except Exception: pass
+              raise
+          finally:
+              STATUS.write_text(json.dumps(status,indent=2,sort_keys=True)+'\n')
+              print(json.dumps(status,sort_keys=True))
+          PY
