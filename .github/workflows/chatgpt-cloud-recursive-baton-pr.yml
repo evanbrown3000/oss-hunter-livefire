@@ -1,0 +1,60 @@
+name: Public PR recursive ChatGPT baton
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - baton/trigger.txt
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: chatgpt-cloud-pr-baton-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  CHATGPT_LOGIN_EMAIL: evanbrown3000@gmail.com
+
+jobs:
+  recurse:
+    if: github.event.pull_request.user.login == 'evanbrown3000' && github.event.pull_request.head.ref == 'chatgpt-cloud-baton-chain'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install browser and crypto runtime
+        run: |
+          python -m pip install --disable-pip-version-check --quiet playwright==1.55.0 cryptography==45.0.6 requests==2.32.4
+          python -m playwright install --with-deps chromium
+
+      - name: Execute one serial external recursive baton hop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          xvfb-run -a python baton/pr_baton.py
+
+      - name: Preserve sanitized status artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-cloud-pr-baton-${{ github.run_id }}
+          path: /tmp/pr-baton-status.json
+          if-no-files-found: warn
+          retention-days: 1
