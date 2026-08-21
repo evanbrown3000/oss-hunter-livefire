@@ -1,3 +1,5 @@
+[![RustChain bounty participant](https://img.shields.io/badge/RustChain-bounty%20participant-orange)](https://rustchain.org)
+
 <!-- BEGIN LEANPUB_MARKETPLACE -->
 ## Production ML Deployment Triage — Leanpub marketplace
 
@@ -113,7 +115,7 @@ The kit gives a reusable operational loop for that work:
 
 The Stripe checkout is live. After successful payment, Stripe immediately shows the enhanced ZIP download link. No account setup or sales call is required.
 
-[**Buy the Agentic AI Incident Response Kit 2026 — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=repository&utm_campaign=agentic_ir_kit_20260819&utm_content=readme_bottom&client_reference_id=github_oss_hunter_ir_kit_bottom)
+[**Buy the Agentic AI Incident Response Kit 2026 — $109 →**](https://buy.stripe.com/dRmeVd5uh0CP09NaaugQE01?utm_source=github&utm_medium=repository&utm_campaign=agentic_ir_kit_bottom&client_reference_id=github_oss_hunter_ir_kit_bottom)
 
 ### License
 
