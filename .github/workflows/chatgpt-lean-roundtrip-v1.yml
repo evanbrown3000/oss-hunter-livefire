@@ -55,7 +55,7 @@ jobs:
           ' "$TRIGGER_PATH" >/dev/null
           proof_id="$(jq -r .proof_id "$TRIGGER_PATH")"
           gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -X POST \
-            -f "body=LEAN_ROUNDTRIP_RUNNER_ENTERED_V1 proof_id=$proof_id run_id=$RUN_ID runner=github-hosted browser=system-google-chrome auth=native-first cap=6 work=0 codex=0 scheduled_tasks=0 phone=0 local_pc=0 observer_inventory=0 screenshots=0"
+            -f "body=LEAN_ROUNDTRIP_RUNNER_ENTERED_V1 proof_id=$proof_id run_id=$RUN_ID runner=github-hosted browser=system-google-chrome auth=google-backed cap=6 work=0 codex=0 scheduled_tasks=0 phone=0 local_pc=0 observer_inventory=0 screenshots=0"
 
       - uses: actions/setup-python@v5
         with:
@@ -71,17 +71,16 @@ jobs:
           python -m py_compile \
             baton/chatgpt_exact_selfprop_cycle_v3.py \
             baton/chatgpt_lean_roundtrip_v1.py \
-            baton/chatgpt_lean_native_login_launcher_v1.py \
-            baton/chatgpt_lean_chrome_native_launcher_v1.py
+            baton/chatgpt_lean_chrome_google_launcher_v1.py
 
-      - name: Authenticate in system Chrome before accounting and execute one A-B-A cycle
+      - name: Authenticate through Google in system Chrome before accounting and execute one A-B-A cycle
         id: proof
         continue-on-error: true
         shell: bash
         run: |
           set -Eeuo pipefail
           xvfb-run -a -s '-screen 0 1440x1200x24' \
-            python baton/chatgpt_lean_chrome_native_launcher_v1.py
+            python baton/chatgpt_lean_chrome_google_launcher_v1.py
 
       - name: Preserve bounded non-secret receipt
         if: always()
