@@ -1,8 +1,8 @@
 {
   "schema": "cognilode.chatgpt.lean_roundtrip.trigger.v1",
-  "proof_id": "LEANRT_20260821T201240Z_0d079df23ebb",
-  "auth_binding_sha256": "ee9fac8942888046194fd05530b6a5f1384ca9d6f9e5da97215820c24f43ca11",
-  "a2b_seed": "A2B_3K9W_XQCKMF8CKRK5Gw8Jm9T7VMDtCtqy5M_6Hq_NQc",
+  "proof_id": "LEANRT_20260821T201920Z_cef671253dde",
+  "auth_binding_sha256": "4d7d7aa2efae431ee8881f890b4b4b4c81b9ceff31b9e650086dc1b9df32ee97",
+  "a2b_seed": "A2B_pTOK5s_k97e5kH1AkrxwoybpPoKYsEB_gWfkPIW8Bvs",
   "meaningful_request_cap": 6,
   "chat_mode_only": true,
   "work_mode_allowed": false,
