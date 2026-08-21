@@ -1,0 +1,16 @@
+{
+  "schema": "cognilode.chatgpt.exact_selfprop_cycle.trigger.v5",
+  "proof_id": "SELFPROP_V5_20260821T191424Z_0818BA3BF9",
+  "origin": "this exact current ChatGPT.com Chat conversation",
+  "target_parent_marker": "do full A to B and B to A proof prompting another convo and it prompting your own convo back. that is the sole piece we care about.",
+  "secret1_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "secret1_commitment_stage": "encrypted_runner_decrypt_before_child_prompt",
+  "required_cycle": "parent A external PR event to fresh B first prompt to B-owned GitHub callback to same parent A",
+  "auth_bundle_transport": "cloudflare_quick_tunnel_get_v4",
+  "chat_mode_only": true,
+  "extra_high_or_pro_required": true,
+  "work_mode_allowed": false,
+  "codex_quota_consumed": 0,
+  "scheduled_tasks_used": false,
+  "local_pc_used": false
+}
