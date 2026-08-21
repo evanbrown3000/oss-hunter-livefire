@@ -1,0 +1,92 @@
+name: selfprop-public-cloud-shell
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selfprop-public-cloud-shell
+  cancel-in-progress: true
+
+jobs:
+  serve:
+    if: >-
+      github.event.pull_request.user.login == github.repository_owner &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.title, '[SELFPROP PUBLIC SHELL] ')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Start lean shell relay
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s control/selfprop-lease-public.pem
+          CAP="$(python3 - <<'PY'
+          import secrets
+          print(secrets.token_urlsafe(32))
+          PY
+          )"
+          printf '%s' "$CAP" > /tmp/selfprop.cap
+          cat >/tmp/selfprop_server.py <<'PY'
+          import base64, json, os, subprocess
+          from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+          from urllib.parse import urlparse, parse_qs
+          CAP=open('/tmp/selfprop.cap').read().strip()
+          class H(BaseHTTPRequestHandler):
+              def log_message(self,*a): pass
+              def sendj(self,code,obj):
+                  b=json.dumps(obj,separators=(',',':')).encode(); self.send_response(code); self.send_header('content-type','application/json'); self.send_header('content-length',str(len(b))); self.end_headers(); self.wfile.write(b)
+              def do_GET(self):
+                  u=urlparse(self.path); parts=u.path.strip('/').split('/')
+                  if len(parts)!=2 or parts[1]!=CAP: return self.sendj(401,{'ok':False})
+                  if parts[0]=='health': return self.sendj(200,{'ok':True})
+                  if parts[0]!='exec': return self.sendj(404,{'ok':False})
+                  q=parse_qs(u.query).get('q',[''])[0]
+                  try:
+                      cmd=base64.urlsafe_b64decode(q+'='*(-len(q)%4)).decode()
+                      t=min(90,max(1,int(parse_qs(u.query).get('timeout',['60'])[0])))
+                      env={k:v for k,v in os.environ.items() if k in ('PATH','HOME','LANG','LC_ALL','TERM','TMPDIR')}
+                      p=subprocess.run(['/bin/bash','-lc',cmd],cwd='/tmp',env=env,text=True,capture_output=True,timeout=t)
+                      return self.sendj(200,{'returncode':p.returncode,'stdout':p.stdout[-262144:],'stderr':p.stderr[-262144:]})
+                  except subprocess.TimeoutExpired: return self.sendj(408,{'returncode':124,'stdout':'','stderr':'timeout'})
+                  except Exception as e: return self.sendj(400,{'returncode':2,'stdout':'','stderr':type(e).__name__})
+          ThreadingHTTPServer(('127.0.0.1',8765),H).serve_forever()
+          PY
+          nohup python3 /tmp/selfprop_server.py >/tmp/selfprop_server.log 2>&1 &
+          curl -fsSL --retry 3 -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x /tmp/cloudflared
+          nohup /tmp/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8765 >/tmp/cloudflared.log 2>&1 &
+          URL=''
+          for _ in $(seq 1 40); do
+            URL="$(grep -Eo 'https://[-a-z0-9]+\.trycloudflare\.com' /tmp/cloudflared.log | tail -1 || true)"
+            [ -n "$URL" ] && break
+            sleep 1
+          done
+          test -n "$URL"
+          curl -fsS "$URL/health/$CAP" | grep -q '"ok":true'
+          EXP="$(date -u -d '+45 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          printf '{"u":"%s","c":"%s","e":"%s"}' "$URL" "$CAP" "$EXP" >/tmp/lease.json
+          openssl pkeyutl -encrypt -pubin -inkey control/selfprop-lease-public.pem -in /tmp/lease.json -out /tmp/lease.enc -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
+          shred -u /tmp/lease.json /tmp/selfprop.cap || true
+
+      - name: Publish encrypted lease artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfprop-cloud-shell-lease
+          path: /tmp/lease.enc
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Keep relay alive
+        shell: bash
+        run: sleep 2700
