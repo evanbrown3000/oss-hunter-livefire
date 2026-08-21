@@ -1,0 +1,43 @@
+name: Public MCP recursive ChatGPT PR baton
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - mcp_baton/trigger.txt
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: chatgpt-cloud-mcp-baton-chain
+  cancel-in-progress: false
+
+jobs:
+  recurse:
+    if: github.event.pull_request.user.login == 'evanbrown3000' && github.event.pull_request.head.ref == 'chatgpt-cloud-mcp-baton-chain'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      MCP_ENDPOINT: https://mcp.cognilode.com/mcp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Start one fresh Chat-mode conversation through the public Cognilode MCP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python mcp_baton/cloud_mcp_baton.py
