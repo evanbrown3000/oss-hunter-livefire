@@ -1,0 +1,74 @@
+name: ChatGPT exact self-propulsion v8 diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/recovery/a2a-cycle-v8-trigger.json'
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: oss-exact-selfprop-v8-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  execute:
+    if: github.event.pull_request.user.login == 'evanbrown3000'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ github.run_id }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      TRIGGER_PATH: .github/recovery/a2a-cycle-v8-trigger.json
+      STATUS_PATH: /tmp/chatgpt-selfprop-v8-status.json
+      SESSION_PATH: /tmp/chatgpt-selfprop-v8-storage.json
+      DIAG_PATH: /tmp/chatgpt-login-diagnostic.json
+      SHOT_PATH: /tmp/chatgpt-login-final.png
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install browser runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet 'playwright==1.55.0' 'cryptography>=44,<46' 'requests>=2.31,<3'
+          python -m playwright install chromium
+
+      - name: Execute exact A to B to A with bounded login diagnostics
+        shell: bash
+        run: xvfb-run -a -s '-screen 0 1440x1600x24' python baton/chatgpt_exact_selfprop_cycle_v8_diag.py
+
+      - name: Preserve causal receipt and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-selfprop-v8-${{ github.run_id }}
+          path: |
+            /tmp/chatgpt-selfprop-v8-status.json
+            /tmp/chatgpt-login-diagnostic.json
+            /tmp/chatgpt-login-final.png
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Preserve refreshed session briefly
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-selfprop-v8-session-${{ github.run_id }}
+          path: /tmp/chatgpt-selfprop-v8-storage.json
+          if-no-files-found: ignore
+          retention-days: 1
