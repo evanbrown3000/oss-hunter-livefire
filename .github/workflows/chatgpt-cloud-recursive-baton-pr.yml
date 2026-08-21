@@ -1,9 +1,8 @@
-name: Public PR recursive ChatGPT baton
+name: Public branch-push recursive ChatGPT baton
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [chatgpt-cloud-baton-chain]
     paths:
       - baton/trigger.txt
 
@@ -13,7 +12,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: chatgpt-cloud-pr-baton-${{ github.event.pull_request.number }}
+  group: chatgpt-cloud-pr-baton-chain
   cancel-in-progress: false
 
 env:
@@ -21,7 +20,6 @@ env:
 
 jobs:
   recurse:
-    if: github.event.pull_request.user.login == 'evanbrown3000' && github.event.pull_request.head.ref == 'chatgpt-cloud-baton-chain'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -42,9 +40,9 @@ jobs:
       - name: Execute one serial external recursive baton hop
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: 1
           RUN_ID: ${{ github.run_id }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REF: chatgpt-cloud-baton-chain
         shell: bash
         run: |
           set -Eeuo pipefail
