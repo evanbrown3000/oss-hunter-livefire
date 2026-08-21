@@ -1,0 +1,16 @@
+{
+  "schema": "cognilode.chatgpt.exact_selfprop_cycle.trigger.v5",
+  "proof_id": "SELFPROP_V5_20260821T075923Z_C91D4E7A",
+  "origin": "this exact current ChatGPT.com Chat conversation",
+  "target_parent_marker": "AORIGIN_lXtN1qiBXCjYT5lfRVfo4DznrNqt9tmfKtkYxrcu",
+  "secret1_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "secret1_commitment_stage": "encrypted_runner_decrypt_before_child_prompt",
+  "required_cycle": "parent A external PR event to fresh B first prompt to B-owned GitHub callback to same parent A",
+  "auth_bundle_transport": "cloudflare_quick_tunnel_get_v4",
+  "chat_mode_only": true,
+  "extra_high_or_pro_required": true,
+  "work_mode_allowed": false,
+  "codex_quota_consumed": 0,
+  "scheduled_tasks_used": false,
+  "local_pc_used": false
+}
