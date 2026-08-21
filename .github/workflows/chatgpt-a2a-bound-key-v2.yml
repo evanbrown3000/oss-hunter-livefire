@@ -1,0 +1,52 @@
+name: ChatGPT A2A bound-key cycle v2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/recovery/a2a-cycle-7afc641c-trigger.txt'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: oss-a2a-bound-key-v2-7afc641c
+  cancel-in-progress: true
+
+jobs:
+  execute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ github.run_id }}
+      CONTROL_ISSUE: ${{ github.event.pull_request.number }}
+      CYCLE_ID: cycle-7afc641c432933b8
+      A_MARKER: cycle-7afc641c432933b8
+      SECRET1_SHA256: c91df883974f88a177cb8ff51be4c018f21618b2991aa3d6489ad1a72d5d31d5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Record runner start
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${CONTROL_ISSUE}/comments" -X POST \
+            -f "body=A2A_V2_WORKFLOW_STARTED cycle=cycle-7afc641c432933b8 run_id=${GITHUB_RUN_ID} repo=${GITHUB_REPOSITORY} transport=run_bound_key_ciphertext work=false codex=false scheduled_tasks=false local_pc=false"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install cloud browser runtime
+        run: |
+          python -m pip install --disable-pip-version-check --quiet 'playwright==1.55.0' 'cryptography>=44,<46' 'requests>=2.31,<3'
+          python -m playwright install --with-deps chromium
+      - name: Fetch selected public executor bytes
+        run: |
+          mkdir -p tools
+          curl -fsSLo tools/chatgpt_a2a_encrypted_auth_cycle.py https://raw.githubusercontent.com/evanbrown3000/cryptid/working/tools/chatgpt_a2a_encrypted_auth_cycle.py
+          curl -fsSLo tools/chatgpt_a2a_encrypted_auth_cycle_v2.py https://raw.githubusercontent.com/evanbrown3000/cryptid/working/tools/chatgpt_a2a_encrypted_auth_cycle_v2.py
+          python -m py_compile tools/chatgpt_a2a_encrypted_auth_cycle.py tools/chatgpt_a2a_encrypted_auth_cycle_v2.py
+      - name: Execute provider-visible cycle
+        run: xvfb-run -a -s '-screen 0 1440x1600x24' python tools/chatgpt_a2a_encrypted_auth_cycle_v2.py
