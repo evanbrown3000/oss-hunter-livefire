@@ -73,7 +73,7 @@ jobs:
             sleep 1
           done
           test -n "$URL"
-          curl -fsS "$URL/health/$CAP" | grep -q '"ok":true'
+          curl -fsS --retry 20 --retry-all-errors --retry-delay 2 "$URL/health/$CAP" | grep -q '"ok":true'
           EXP="$(date -u -d '+45 minutes' +%Y-%m-%dT%H:%M:%SZ)"
           printf '{"u":"%s","c":"%s","e":"%s"}' "$URL" "$CAP" "$EXP" >/tmp/lease.json
           openssl pkeyutl -encrypt -pubin -inkey control/selfprop-lease-public.pem -in /tmp/lease.json -out /tmp/lease.enc -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
