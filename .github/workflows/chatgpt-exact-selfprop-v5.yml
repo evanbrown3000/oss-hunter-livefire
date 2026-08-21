@@ -1,0 +1,88 @@
+name: ChatGPT exact self-propulsion cycle v5
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/recovery/a2a-cycle-v5-trigger.json'
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: oss-exact-selfprop-v5-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  execute:
+    if: github.event.pull_request.user.login == 'evanbrown3000'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ github.run_id }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      TRIGGER_PATH: .github/recovery/a2a-cycle-v5-trigger.json
+      STATUS_PATH: /tmp/chatgpt-selfprop-status.json
+      SESSION_PATH: /tmp/chatgpt-selfprop-storage.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+
+      - name: Validate exact deferred-commitment trigger
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$TRIGGER_PATH"
+          jq -e '
+            .schema == "cognilode.chatgpt.exact_selfprop_cycle.trigger.v5" and
+            (.proof_id | type == "string" and length >= 20) and
+            (.target_parent_marker | type == "string" and length >= 20) and
+            .secret1_sha256 == "0000000000000000000000000000000000000000000000000000000000000000" and
+            .secret1_commitment_stage == "encrypted_runner_decrypt_before_child_prompt" and
+            .auth_bundle_transport == "cloudflare_quick_tunnel_get_v4" and
+            .chat_mode_only == true and
+            .work_mode_allowed == false and
+            .codex_quota_consumed == 0 and
+            .scheduled_tasks_used == false and
+            .local_pc_used == false
+          ' "$TRIGGER_PATH" >/dev/null
+          PROOF_ID="$(jq -r .proof_id "$TRIGGER_PATH")"
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -X POST \
+            -f "body=CYCLE_RUNNER_ENTERED_V5 proof_id=$PROOF_ID run_id=$RUN_ID event=pull_request runner=github-hosted codex=0 work_mode=0 scheduled_tasks=0 local_pc=0"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bounded cloud browser and encryption runtime
+        run: |
+          python -m pip install --disable-pip-version-check --quiet 'playwright==1.55.0' 'cryptography>=44,<46' 'requests>=2.31,<3'
+          python -m playwright install --with-deps chromium
+
+      - name: Execute exact A to B to B-owned callback to same A
+        run: xvfb-run -a -s '-screen 0 1440x1600x24' python baton/chatgpt_exact_selfprop_cycle_v5.py
+
+      - name: Preserve exact causal receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-selfprop-v5-receipt-${{ github.run_id }}
+          path: /tmp/chatgpt-selfprop-status.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve refreshed authenticated browser state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-selfprop-v5-session-${{ github.run_id }}
+          path: /tmp/chatgpt-selfprop-storage.json
+          if-no-files-found: ignore
+          retention-days: 2
