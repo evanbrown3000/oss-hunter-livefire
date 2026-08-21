@@ -1,0 +1,46 @@
+name: Public ChatGPT recursive cycle PR v1
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: public-chatgpt-recursive-cycle-pr-v1
+  cancel-in-progress: false
+
+jobs:
+  cycle:
+    if: startsWith(github.event.pull_request.title, 'CHATGPT_PUBLIC_CYCLE ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      CONTROL_ISSUE: ${{ github.event.pull_request.number }}
+      RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet 'playwright==1.55.0' 'cryptography>=44,<46' 'requests>=2.31,<3'
+      - name: Verify system Chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser
+      - name: Execute recursive two-chat causal cycle
+        shell: bash
+        run: xvfb-run -a -s '-screen 0 1440x1200x24' python tools/chatgpt_public_recursive_cycle.py
