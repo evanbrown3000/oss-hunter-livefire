@@ -1,0 +1,114 @@
+name: ChatGPT lean three-request A-B-A proof
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/recovery/lean-roundtrip-v1-trigger.json'
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: oss-lean-roundtrip-v1-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  prove:
+    if: github.event.pull_request.user.login == 'evanbrown3000'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ github.run_id }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      TRIGGER_PATH: .github/recovery/lean-roundtrip-v1-trigger.json
+      RESULT_PATH: /tmp/lean-roundtrip-result.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+
+      - name: Validate bounded trigger and publish runner entry
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          jq -e '
+            .schema == "cognilode.chatgpt.lean_roundtrip.trigger.v1" and
+            (.proof_id | type == "string" and length >= 20) and
+            (.auth_binding_sha256 | test("^[0-9a-f]{64}$")) and
+            (.a2b_seed | type == "string" and startswith("A2B_") and length >= 32) and
+            .meaningful_request_cap == 6 and
+            .chat_mode_only == true and
+            .work_mode_allowed == false and
+            .codex_quota_consumed == 0 and
+            .scheduled_tasks_used == false and
+            .phone_used == false and
+            .local_pc_used == false and
+            .observer_inventory_calls == 0 and
+            .screenshots == 0
+          ' "$TRIGGER_PATH" >/dev/null
+          proof_id="$(jq -r .proof_id "$TRIGGER_PATH")"
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -X POST \
+            -f "body=LEAN_ROUNDTRIP_RUNNER_ENTERED_V1 proof_id=$proof_id run_id=$RUN_ID runner=github-hosted cap=6 work=0 codex=0 scheduled_tasks=0 phone=0 local_pc=0 observer_inventory=0 screenshots=0"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bounded browser and encryption runtime
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python -m pip install --disable-pip-version-check --quiet \
+            'playwright==1.55.0' 'cryptography==45.0.7' 'requests==2.32.5'
+          python -m playwright install --with-deps chromium
+          python -m py_compile \
+            baton/chatgpt_exact_selfprop_cycle_v3.py \
+            baton/chatgpt_lean_roundtrip_v1.py
+
+      - name: Authenticate before accounting and execute exactly one A-B-A cycle
+        id: proof
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          xvfb-run -a -s '-screen 0 1440x1200x24' \
+            python baton/chatgpt_lean_roundtrip_v1.py
+
+      - name: Preserve bounded non-secret receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-roundtrip-v1-${{ github.run_id }}
+          path: /tmp/lean-roundtrip-result.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Enforce provider proof and request ceiling
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test '${{ steps.proof.outcome }}' = 'success'
+          jq -e '
+            .proof_complete == true and
+            .a_generated_exact_b_prompt == true and
+            .b_generated_exact_a_prompt == true and
+            .a_acknowledged_b_return == true and
+            .fresh_distinct_conversations == true and
+            .request_accounting.meaningful_request_count <= 6 and
+            .observer_inventory_calls == 0 and
+            .conversation_list_calls == 0 and
+            .transcript_scan_calls == 0 and
+            .screenshots == 0 and
+            .work_mode_used == false and
+            .codex_quota_consumed == 0 and
+            .scheduled_tasks_used == false and
+            .phone_used == false and
+            .local_pc_used == false
+          ' /tmp/lean-roundtrip-result.json >/dev/null
