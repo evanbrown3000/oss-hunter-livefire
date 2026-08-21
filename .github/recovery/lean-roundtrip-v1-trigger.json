@@ -1,0 +1,15 @@
+{
+  "schema": "cognilode.chatgpt.lean_roundtrip.trigger.v1",
+  "proof_id": "LEANRT_20260821T200802Z_bdc7483820b8",
+  "auth_binding_sha256": "c37b494c530cdb044ddac993aaa29ef6734af4a953995aec86f9b8496c86c479",
+  "a2b_seed": "A2B_hUictq3UigeAyBUINMYPfZ9a68DoVCxSpecdNLiZlAk",
+  "meaningful_request_cap": 6,
+  "chat_mode_only": true,
+  "work_mode_allowed": false,
+  "codex_quota_consumed": 0,
+  "scheduled_tasks_used": false,
+  "phone_used": false,
+  "local_pc_used": false,
+  "observer_inventory_calls": 0,
+  "screenshots": 0
+}
